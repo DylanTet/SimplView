@@ -1,14 +1,35 @@
-const createElement = tagName => (strings, ...args) => ({
-    type: tagName,
-    template: strings.reduce((acc, currString, index) => acc + currString + (args[index] || ""), "") 
-});
+import { h } from "snabbdom/h";
 
-const div = createElement("div");
-const p = createElement("p");
+const initialState = {
+    template: "",
+    on: {},
+};
 
-const firstName = "Dylan";
-const lastName = "Tettemer";
+const createReducer = args => (acc, currString, index) => {
+    console.log(args);
+    const currentArg = args[index];
+    
+    if (currentArg && currentArg.type === "event") {
+        return { ...acc, on: { click: currentArg.click } }
+    };
 
-// const template = div`Hello ${firstName} ${lastName} !`;
-const { template } = p`Hello ${firstName} ${lastName} !`;
-console.log(template);
+    return {
+        ...acc,
+        template: acc.template + currString + (args[index] || "")
+    };
+};
+
+const createElement = tagName => (strings, ...args) => {
+    const { template, on } = strings.reduce(createReducer(args), initialState)
+    return {
+        type: "element",
+        template: h(
+            tagName,
+            { on },
+            template,
+        ),
+    }
+};
+
+export const div = createElement("div");
+export const p = createElement("p");
